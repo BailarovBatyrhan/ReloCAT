@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Релокот — помощник по переезду</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#58CC02; --green-d:#58A700; --green-l:#D7FFB8;
+  --blue:#1CB0F6; --blue-d:#1899D6; --blue-l:#DDF4FF;
+  --red:#FF4B4B; --red-d:#EA2B2B; --red-l:#FFDFE0;
+  --orange:#FF9600; --orange-l:#FFF0D5;
+  --yellow:#FFC800; --purple:#CE82FF; --purple-d:#A560E8;
+  --navy:#0F3E63;
+  --ink:#3C3C3C; --muted:#777; --faint:#AFAFAF; --line:#E5E5E5; --soft:#F7F7F7;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:#fff;color:var(--ink);font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.45}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--blue-d)}
+.app{display:grid;grid-template-columns:240px minmax(0,1fr) 340px;min-height:100vh}
+
+/* ---------- sidebar ---------- */
+.sidebar{border-right:2px solid var(--line);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:4px}
+.logo{display:flex;align-items:center;gap:8px;padding:0 10px 22px;font-weight:900;font-size:26px;color:var(--green);letter-spacing:-.5px}
+.logo svg{width:38px;height:38px}
+.nav-item{display:flex;align-items:center;gap:14px;padding:10px 14px;border-radius:14px;border:2px solid transparent;cursor:pointer;font-weight:800;font-size:13.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--soft)}
+.nav-item.active{background:var(--blue-l);border-color:#84D8FF;color:var(--blue-d)}
+.nav-item .ic{font-size:22px;width:28px;text-align:center}
+.nav-item .count{margin-left:auto;background:var(--red);color:#fff;border-radius:10px;font-size:11px;padding:1px 7px;letter-spacing:0}
+
+/* ---------- main ---------- */
+.main{padding:28px 40px 80px;max-width:820px;width:100%;margin:0 auto}
+.h1{font-size:26px;font-weight:900;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 22px;font-weight:600}
+.card{border:2px solid var(--line);border-radius:16px;padding:18px 20px;background:#fff}
+.card+.card{margin-top:14px}
+.card.hi{background:var(--blue-l);border-color:#84D8FF}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.spacer{flex:1}
+.label{font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin-bottom:8px}
+.title{font-size:19px;font-weight:900;margin:0}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.banner{display:flex;gap:10px;align-items:flex-start;background:var(--orange-l);border:2px solid #FFD48A;border-radius:14px;padding:10px 14px;font-weight:700;font-size:13.5px;margin-bottom:18px;color:#8A5300}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;font-size:13px;border-radius:14px;padding:11px 18px;border:2px solid var(--line);border-bottom-width:4px;background:#fff;color:var(--blue);cursor:pointer;transition:filter .1s,transform .05s;white-space:nowrap}
+.btn:hover{filter:brightness(.97)}
+a.btn{text-decoration:none}
+.btn:active{transform:translateY(2px);border-bottom-width:2px;margin-bottom:2px}
+.btn.primary{background:var(--green);border-color:var(--green-d);color:#fff}
+.btn.blue{background:var(--blue);border-color:var(--blue-d);color:#fff}
+.btn.red{color:var(--red)}
+.btn.ghost{border-color:transparent;background:none;color:var(--blue)}
+.btn.sm{padding:7px 12px;font-size:12px;border-radius:12px}
+.btn.saved{background:var(--yellow);border-color:#E5A800;color:#fff}
+
+/* mascot bubble */
+.hero{display:flex;align-items:center;gap:18px;margin-bottom:20px}
+.hero svg{width:92px;height:92px;flex:none}
+.bubble{position:relative;border:2px solid var(--line);border-radius:16px;padding:12px 16px;font-weight:700;background:#fff}
+.bubble:before{content:"";position:absolute;left:-10px;top:50%;width:16px;height:16px;background:#fff;border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:translateY(-50%) rotate(45deg)}
+
+/* progress bar */
+.bar{height:16px;background:var(--line);border-radius:10px;overflow:hidden;position:relative;flex:1;min-width:120px}
+.bar>i{display:block;height:100%;border-radius:10px;background:var(--green);position:relative}
+.bar>i:after{content:"";position:absolute;left:8px;right:8px;top:4px;height:4px;border-radius:4px;background:rgba(255,255,255,.35)}
+.bar.orange>i{background:var(--orange)}
+.bar.red>i{background:var(--red)}
+.bar.sm{height:12px}
+.bar.sm>i:after{top:3px;height:3px}
+.pct{font-weight:900;min-width:44px;text-align:right}
+
+/* chips / options */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;padding:9px 14px;cursor:pointer;font-weight:800;background:#fff;color:var(--ink)}
+.chip:hover{background:var(--soft)}
+.chip.on{background:var(--blue-l);border-color:#84D8FF;color:var(--blue-d)}
+.field{margin-bottom:22px}
+.field>.q{font-weight:900;font-size:16px;margin-bottom:10px}
+.input{border:2px solid var(--line);border-radius:14px;padding:11px 14px;background:var(--soft);width:100%;outline:none;font-weight:700}
+.input:focus{border-color:var(--blue);background:#fff}
+select.input{appearance:auto}
+
+/* item cards */
+.item-head{display:flex;gap:12px;align-items:flex-start}
+.flag{font-size:30px;line-height:1}
+.tag{display:inline-block;font-size:11.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;border-radius:8px;padding:2px 8px;background:var(--soft);color:var(--muted);border:2px solid var(--line)}
+.tag.green{background:var(--green-l);border-color:#A5ED6E;color:var(--green-d)}
+.tag.blue{background:var(--blue-l);border-color:#84D8FF;color:var(--blue-d)}
+.tag.purple{background:#F4E6FF;border-color:#E2C2FF;color:var(--purple-d)}
+.tag.red{background:var(--red-l);border-color:#FFB2B2;color:var(--red-d)}
+.reasons{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin:12px 0 4px;font-size:13.5px;font-weight:700}
+.reasons .ok{color:var(--green-d)} .reasons .no{color:var(--red-d)}
+.scores{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.sc{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:800;border-radius:10px;padding:3px 9px;background:var(--soft);border:2px solid var(--line)}
+.sc b{display:inline-grid;place-items:center;min-width:24px;height:22px;border-radius:7px;color:#fff;font-size:12.5px}
+.s-hi{background:var(--green)} .s-mid{background:var(--orange)} .s-lo{background:var(--red)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:center}
+.toolbar .input{flex:1;min-width:200px}
+.toggle{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:13px;cursor:pointer;border:2px solid var(--line);border-radius:12px;padding:7px 11px;background:#fff;user-select:none}
+.toggle.on{background:var(--green-l);border-color:#A5ED6E;color:var(--green-d)}
+.empty{text-align:center;padding:40px 20px;color:var(--muted);font-weight:700}
+.empty svg{width:90px;height:90px;display:block;margin:0 auto 10px}
+
+/* rating table */
+.rt{width:100%;border-collapse:separate;border-spacing:0 6px;font-size:13.5px}
+.rt th{font-size:10.5px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--faint);text-align:center;padding:4px;cursor:pointer;line-height:1.2}
+.rt td:first-child{min-width:230px}
+.rt th:first-child{text-align:left}
+.rt th.sorted{color:var(--blue-d)}
+.rt td{background:#fff;border-top:2px solid var(--line);border-bottom:2px solid var(--line);padding:8px 6px;text-align:center}
+.rt td:first-child{border-left:2px solid var(--line);border-radius:14px 0 0 14px;text-align:left;padding-left:12px}
+.rt td:last-child{border-right:2px solid var(--line);border-radius:0 14px 14px 0}
+.rt .nm{font-weight:800;cursor:pointer}
+.rt .nm:hover{color:var(--blue-d)}
+.big{display:inline-grid;place-items:center;width:38px;height:30px;border-radius:9px;color:#fff;font-weight:900;font-size:15px}
+.sliders{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 20px}
+.sl{display:flex;flex-direction:column;gap:2px;font-weight:800;font-size:13px}
+.sl .row{gap:8px}
+input[type=range]{accent-color:var(--green);width:100%}
+.table-wrap{overflow-x:auto}
+
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .dow{font-size:11px;font-weight:800;color:var(--faint);text-transform:uppercase;text-align:center;padding:4px 0}
+.day{min-width:0;min-height:74px;border:2px solid var(--line);border-radius:12px;padding:6px;cursor:pointer;background:#fff;text-align:left;display:flex;flex-direction:column;gap:3px}
+.day:hover{background:var(--soft)}
+.day.out{opacity:.35}
+.day.today .dn{background:var(--red);color:#fff;border-radius:8px;padding:0 6px}
+.day.sel{border-color:var(--blue);background:var(--blue-l)}
+.dn{font-weight:900;font-size:13px;align-self:flex-start}
+.ev-pill{font-size:10.5px;font-weight:800;border-radius:6px;padding:1px 5px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-deadline{background:var(--red)} .c-webinar{background:var(--blue)} .c-fair{background:var(--orange)} .c-personal{background:var(--green)} .c-docs{background:var(--purple)}
+.ev{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:2px solid var(--soft)}
+.ev:last-child{border-bottom:0}
+.ev .dot{width:12px;height:12px;border-radius:50%;margin-top:5px;flex:none}
+.ev .when{font-size:12px;font-weight:800;color:var(--faint);text-transform:uppercase}
+.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:8px;align-items:center}
+
+/* saved */
+.status-sel{border:2px solid var(--line);border-radius:12px;padding:6px 10px;font-weight:800;background:#fff}
+textarea.input{min-height:60px;resize:vertical;font-weight:600}
+
+/* right rail */
+.rail{padding:22px 22px;border-left:2px solid var(--line);position:sticky;top:0;height:100vh;overflow-y:auto}
+.stats{display:flex;justify-content:space-between;margin-bottom:18px;font-weight:900;font-size:15px}
+.stats span{display:flex;align-items:center;gap:6px}
+.rail .card{padding:16px}
+.rail .card+.card{margin-top:14px}
+.rail h3{margin:0 0 6px;font-size:17px;font-weight:900}
+.quest{display:flex;align-items:center;gap:12px;margin-top:12px}
+.quest .qi{font-size:26px}
+.quest .qt{font-weight:800;font-size:14px;margin-bottom:4px}
+.quest .bar{position:relative}
+.quest .bar span{position:absolute;inset:0;display:grid;place-items:center;font-size:10.5px;font-weight:900;color:#4b4b4b}
+.promo{background:var(--navy)!important;border-color:var(--navy)!important;color:#fff;text-align:center}
+.promo p{color:#BFE6FF;font-weight:700;font-size:13.5px;margin:6px 0 12px}
+
+/* modal + toast */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;place-items:center;z-index:50;padding:20px}
+.modal.open{display:grid}
+.modal .box{background:#fff;border-radius:20px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:24px;border:2px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:var(--green);color:#fff;font-weight:900;border-radius:14px;padding:12px 20px;border-bottom:4px solid var(--green-d);transition:transform .25s;z-index:60}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.bob svg{width:90px;height:90px;animation:bob 1.2s ease-in-out infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}}
+.dots:after{content:'';animation:dots 1.4s steps(1) infinite}
+code{background:var(--soft);border-radius:6px;padding:1px 6px;font-size:13px}
+.live-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--green);box-shadow:0 0 0 3px var(--green-l)}
+
+/* responsive */
+@media (max-width:1180px){
+  .app{grid-template-columns:88px minmax(0,1fr) 300px}
+  .nav-item .lbl,.logo .lbl{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  .nav-item .count{position:absolute;margin:0;transform:translate(14px,-12px)}
+  .nav-item{position:relative}
+  .logo{justify-content:center;padding:0 0 22px}
+}
+@media (max-width:900px){
+  .app{grid-template-columns:1fr}
+  .sidebar{position:fixed;bottom:0;top:auto;left:0;right:0;height:auto;flex-direction:row;justify-content:space-around;border-right:0;border-top:2px solid var(--line);background:#fff;z-index:40;padding:6px}
+  .logo{display:none}
+  .nav-item{width:auto}
+  .rail{position:static;height:auto;border-left:0;border-top:2px solid var(--line);padding-bottom:100px}
+  .main{padding:20px 16px 30px}
+  .reasons{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .day{min-height:54px}
+  .ev-pill{display:none}
+  .day.has:after{content:"";width:6px;height:6px;border-radius:50%;background:var(--red)}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar"></aside>
+  <main class="main" id="main"></main>
+  <aside class="rail" id="rail"></aside>
+</div>
+<div class="modal" id="modal" data-act="modal-bg"><div class="box" id="modal-box"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   Релокот — прототип. Все данные — демо, хранятся в браузере.
+   ========================================================= */
+
+const MASCOT = (mood='happy') => `
+<svg viewBox="0 0 120 120" aria-hidden="true">
+  <path d="M26 44 L34 10 L56 34 Z" fill="#58CC02"/><path d="M94 44 L86 10 L64 34 Z" fill="#58CC02"/>
+  <path d="M32 36 L36 20 L46 33 Z" fill="#89E219"/><path d="M88 36 L84 20 L74 33 Z" fill="#89E219"/>
+  <ellipse cx="60" cy="64" rx="42" ry="38" fill="#58CC02"/>
+  <ellipse cx="60" cy="78" rx="25" ry="17" fill="#89E219"/>
+  <circle cx="44" cy="58" r="12" fill="#fff"/><circle cx="76" cy="58" r="12" fill="#fff"/>
+  ${mood==='sad'
+    ? '<path d="M37 60 Q44 55 51 60" stroke="#3C3C3C" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M69 60 Q76 55 83 60" stroke="#3C3C3C" stroke-width="4" fill="none" stroke-linecap="round"/>'
+    : '<circle cx="46" cy="59" r="6" fill="#3C3C3C"/><circle cx="74" cy="59" r="6" fill="#3C3C3C"/><circle cx="48" cy="57" r="2" fill="#fff"/><circle cx="76" cy="57" r="2" fill="#fff"/>'}
+  <path d="M55 71 L65 71 L60 77 Z" fill="#FF9600"/>
+  <path d="M60 77 Q54 84 49 80 M60 77 Q66 84 71 80" stroke="#3C3C3C" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M20 72 L6 70 M20 78 L6 80 M100 72 L114 70 M100 78 L114 80" stroke="#3C3C3C" stroke-width="2" stroke-linecap="round" opacity=".5"/>
+  <rect x="84" y="86" width="30" height="24" rx="5" fill="#CE82FF"/>
+  <rect x="93" y="80" width="12" height="8" rx="3" fill="none" stroke="#A560E8" stroke-width="3"/>
+  <rect x="84" y="95" width="30" height="4" fill="#A560E8"/>
+</svg>`;
+
+/* ---------- справочники ---------- */
+const LVL = ['none','A1','A2','B1','B2','C1'];
+const EDU = ['school','vocational','bachelor','master','phd'];
+const BUD = ['low','mid','high'];
+const L = {
+  goal:{work:'Работа',study:'Учёба',remote:'Удалёнка / фриланс',business:'Свой бизнес',any:'Любая'},
+  edu:{school:'Школа',vocational:'Колледж / проф.',bachelor:'Бакалавр',master:'Магистр',phd:'PhD'},
+  lang:{english:'Английский',german:'Немецкий'},
+  budget:{low:'До $3 000',mid:'$3 000–10 000',high:'От $10 000'},
+  region:{eu:'Европа',na:'Сев. Америка',asia:'Ближний Восток и Азия',near:'Кавказ и рядом'},
+  sector:{it:'IT',med:'Медицина',eng:'Инженерия',service:'Сервис / логистика',edu:'Образование',other:'Другое',any:'Любая'},
+  family:{alone:'Один / одна',couple:'С партнёром',kids:'С детьми'},
+  type:{'job-search':'Поиск работы',work:'Рабочая виза',study:'Учёба',nomad:'Цифровой кочевник',talent:'Талант / специалист',business:'Бизнес / ИП',pr:'Сразу ПМЖ','visa-free':'Безвиз'},
+  status:{interest:'💡 Интересно',docs:'📄 Готовлю документы',applied:'📨 Подал(а)',approved:'✅ Одобрено',rejected:'❌ Отказ'},
+  cat:{deadline:'Дедлайн',webinar:'Вебинар',fair:'Ярмарка вакансий',docs:'Документы',personal:'Личное'}
+};
+const CRIT = [
+  {k:'rel',  n:'Надёжность',      d:'Официальный источник / проверенный работодатель'},
+  {k:'ease', n:'Лёгкость пути',   d:'Сколько требований и бюрократии'},
+  {k:'speed',n:'Скорость',        d:'Как быстро можно оформить и уехать'},
+  {k:'cost', n:'Дешевизна',       d:'Сколько денег нужно на старте (10 = дёшево)'},
+  {k:'pr',   n:'Перспектива ПМЖ', d:'Насколько это ведёт к ВНЖ/ПМЖ/гражданству'}
+];
+
+/* ---------- демо-база программ (общие сведения, пороги не указаны) ---------- */
+const PROGRAMS = [
+ {id:'de-chance',flag:'🇩🇪',country:'Германия',region:'eu',name:'Chancenkarte — «Карта возможностей»',type:'job-search',goals:['work'],edu:'vocational',lang:[{l:'german',min:'A1'},{l:'english',min:'B2'}],offer:false,remote:false,budget:'mid',minExp:0,sectors:['any'],
+  s:{rel:10,ease:6,speed:6,cost:5,pr:7},site:'make-it-in-germany.com',
+  desc:'Виза для поиска работы по балльной системе: баллы за образование, опыт, язык, возраст и связь с Германией. Можно приехать без оффера и искать работу на месте, с правом частичной подработки.',
+  need:['Признанное высшее или проф. образование','Немецкий A1 или английский B2','Подтверждение средств на проживание']},
+ {id:'de-blue',flag:'🇩🇪',country:'Германия',region:'eu',name:'EU Blue Card (Голубая карта ЕС)',type:'work',goals:['work'],edu:'bachelor',lang:[],offer:true,remote:false,budget:'low',minExp:0,sectors:['it','eng','med','any'],
+  s:{rel:10,ease:5,speed:7,cost:7,pr:9},site:'make-it-in-germany.com',
+  desc:'Рабочий ВНЖ для специалистов с высшим образованием и оффером с зарплатой выше порога (для дефицитных профессий порог ниже). Один из самых быстрых путей к ПМЖ в Германии.',
+  need:['Высшее образование (признанное)','Оффер с зарплатой выше порога','Для IT возможен вариант по опыту без диплома']},
+ {id:'nl-hsm',flag:'🇳🇱',country:'Нидерланды',region:'eu',name:'Highly Skilled Migrant (kennismigrant)',type:'work',goals:['work'],edu:'school',lang:[{l:'english',min:'B1'}],offer:true,remote:false,budget:'low',minExp:1,sectors:['it','eng','any'],
+  s:{rel:10,ease:6,speed:9,cost:7,pr:7},site:'ind.nl',
+  desc:'Работодатель из реестра признанных спонсоров подаёт документы за вас. Диплом формально не требуется — важна зарплата выше порога. Оформление обычно занимает несколько недель.',
+  need:['Оффер от признанного спонсора','Зарплата выше порога (зависит от возраста)']},
+ {id:'pt-d8',flag:'🇵🇹',country:'Португалия',region:'eu',name:'Виза цифрового кочевника (D8)',type:'nomad',goals:['remote'],edu:'school',lang:[],offer:false,remote:true,budget:'mid',minExp:0,sectors:['any'],
+  s:{rel:9,ease:7,speed:5,cost:6,pr:7},site:'vistos.mne.gov.pt',
+  desc:'Для тех, кто работает удалённо на иностранного работодателя или клиентов. Нужен стабильный доход выше порога, кратного минимальной зарплате в Португалии.',
+  need:['Удалённый доход выше порога','Договор / подтверждение работы','Жильё и страховка']},
+ {id:'es-dn',flag:'🇪🇸',country:'Испания',region:'eu',name:'Виза для удалённой работы (teletrabajo)',type:'nomad',goals:['remote'],edu:'bachelor',lang:[],offer:false,remote:true,budget:'mid',minExp:3,sectors:['any'],
+  s:{rel:9,ease:6,speed:6,cost:5,pr:7},site:'exteriores.gob.es',
+  desc:'Удалённая работа на компании вне Испании. Нужен диплом или подтверждённый опыт в профессии, доход выше порога и стаж работы с текущим работодателем/клиентами.',
+  need:['Диплом или ~3 года опыта','Удалённый доход выше порога','Работодатель вне Испании']},
+ {id:'ee-dn',flag:'🇪🇪',country:'Эстония',region:'eu',name:'Digital Nomad Visa',type:'nomad',goals:['remote'],edu:'school',lang:[],offer:false,remote:true,budget:'mid',minExp:0,sectors:['any'],
+  s:{rel:9,ease:8,speed:8,cost:7,pr:2},site:'vm.ee',
+  desc:'Виза до 1 года для удалёнщиков с доходом выше порога. Удобна, чтобы «зайти» в ЕС, но напрямую к ВНЖ не ведёт.',
+  need:['Удалённый доход выше порога','Работодатель / клиенты вне Эстонии']},
+ {id:'pl-work',flag:'🇵🇱',country:'Польша',region:'eu',name:'Разрешение на работу через работодателя',type:'work',goals:['work'],edu:'school',lang:[],offer:true,remote:false,budget:'low',minExp:0,sectors:['any'],
+  s:{rel:9,ease:7,speed:5,cost:8,pr:6},site:'gov.pl',
+  desc:'Работодатель получает разрешение, вы — рабочую визу, затем ВНЖ. Много вакансий для разных уровней квалификации, низкий порог входа.',
+  need:['Оффер от польского работодателя','Разрешение на работу (оформляет работодатель)']},
+ {id:'cz-card',flag:'🇨🇿',country:'Чехия',region:'eu',name:'Карта сотрудника (Employee Card)',type:'work',goals:['work'],edu:'school',lang:[],offer:true,remote:false,budget:'low',minExp:0,sectors:['any','eng','service'],
+  s:{rel:9,ease:6,speed:5,cost:7,pr:6},site:'mvcr.cz',
+  desc:'Совмещённое разрешение на работу и проживание. Вакансия должна быть в центральной базе для иностранцев. Сроки зависят от загрузки консульства.',
+  need:['Оффер на вакансию из базы','Подтверждение квалификации','Жильё в Чехии']},
+ {id:'de-study',flag:'🇩🇪',country:'Германия',region:'eu',name:'Учёба в вузе (студенческая виза)',type:'study',goals:['study'],edu:'school',lang:[{l:'english',min:'B2'},{l:'german',min:'B1'}],offer:false,remote:false,budget:'high',minExp:0,sectors:['any'],
+  s:{rel:10,ease:6,speed:5,cost:4,pr:7},site:'daad.de',
+  desc:'В государственных вузах большинства земель обучение бесплатное, нужен только семестровый взнос. Требуется блокированный счёт на год жизни. После выпуска даётся время на поиск работы.',
+  need:['Зачисление в вуз','Блокированный счёт','Английский или немецкий для программы']},
+ {id:'fr-talent',flag:'🇫🇷',country:'Франция',region:'eu',name:'Passeport Talent',type:'talent',goals:['work','business'],edu:'master',lang:[],offer:true,remote:false,budget:'mid',minExp:0,sectors:['it','eng','any'],
+  s:{rel:10,ease:5,speed:6,cost:5,pr:7},site:'france-visas.gouv.fr',
+  desc:'Многолетний ВНЖ для квалифицированных специалистов, исследователей, основателей стартапов и др. Несколько категорий с разными требованиями.',
+  need:['Диплом магистра или эквивалент (для ряда категорий)','Оффер / проект / инвестиции в зависимости от категории']},
+ {id:'ie-csep',flag:'🇮🇪',country:'Ирландия',region:'eu',name:'Critical Skills Employment Permit',type:'work',goals:['work'],edu:'bachelor',lang:[{l:'english',min:'B2'}],offer:true,remote:false,budget:'mid',minExp:0,sectors:['it','eng','med'],
+  s:{rel:10,ease:5,speed:6,cost:5,pr:8},site:'enterprise.gov.ie',
+  desc:'Разрешение для профессий из списка дефицитных (IT, инженерия, медицина и др.). Ускоренный путь к долгосрочному статусу, англоязычная среда.',
+  need:['Профессия из списка дефицитных','Оффер с зарплатой выше порога']},
+ {id:'rs-res',flag:'🇷🇸',country:'Сербия',region:'eu',name:'ВНЖ по работе или регистрации ИП',type:'business',goals:['work','remote','business'],edu:'school',lang:[],offer:false,remote:false,budget:'low',minExp:0,sectors:['any'],
+  s:{rel:8,ease:9,speed:8,cost:9,pr:5},site:'mup.gov.rs',
+  desc:'Популярное направление у релокантов из СНГ: относительно простая бюрократия, недорогая жизнь, можно оформиться через работу или собственное ИП.',
+  need:['Трудовой договор или регистрация ИП','Жильё с регистрацией']},
+ {id:'ge-free',flag:'🇬🇪',country:'Грузия',region:'near',name:'Длительный безвизовый режим + ИП',type:'visa-free',goals:['remote','business','work'],edu:'school',lang:[],offer:false,remote:false,budget:'low',minExp:0,sectors:['any'],
+  s:{rel:8,ease:10,speed:10,cost:9,pr:3},site:'geoconsul.gov.ge',
+  desc:'Для граждан многих стран СНГ доступен длительный безвизовый въезд; удалёнщики часто регистрируют ИП с льготным налогом. Срок безвиза зависит от гражданства — проверьте.',
+  need:['Паспорт страны с безвизом','Для ИП — регистрация в Доме юстиции']},
+ {id:'ae-remote',flag:'🇦🇪',country:'ОАЭ',region:'asia',name:'Виза для удалённой работы (Дубай)',type:'nomad',goals:['remote'],edu:'school',lang:[],offer:false,remote:true,budget:'high',minExp:0,sectors:['any'],
+  s:{rel:9,ease:7,speed:8,cost:3,pr:2},site:'visitdubai.com',
+  desc:'Годовая виза для удалённых сотрудников с доходом выше порога. Без подоходного налога, но высокая стоимость жизни; к ПМЖ напрямую не ведёт.',
+  need:['Удалённый доход выше порога','Медстраховка']},
+ {id:'ca-ee',flag:'🇨🇦',country:'Канада',region:'na',name:'Express Entry',type:'pr',goals:['work'],edu:'bachelor',lang:[{l:'english',min:'C1'}],offer:false,remote:false,budget:'high',minExp:1,sectors:['any'],
+  s:{rel:10,ease:3,speed:4,cost:4,pr:10},site:'canada.ca',
+  desc:'Балльная система, по итогам которой сразу дают ПМЖ. Высокая конкуренция: важны возраст, язык (IELTS/CELPIP или французский), образование, опыт. Нужны подтверждённые сбережения.',
+  need:['Высокий балл по языковому тесту','Оценка диплома (ECA)','Подтверждение средств']}
+];
+
+/* ---------- демо-вакансии (компании вымышленные) ---------- */
+const JOBS = [
+ {id:'j1',flag:'🇩🇪',country:'Германия',city:'Берлин',region:'eu',sector:'it',title:'Backend-разработчик (Java/Kotlin)',company:'Nordlicht Software',english:'B2',german:'none',minExp:3,salary:'€60–75k / год',visa:true,reloc:true,remote:false,posted:'2 дня назад',program:'de-blue',
+  s:{rel:8,ease:7,speed:7,cost:8,pr:9},desc:'Продуктовая компания, помогает с Blue Card, оплачивает переезд и первый месяц жилья.'},
+ {id:'j2',flag:'🇳🇱',country:'Нидерланды',city:'Роттердам',region:'eu',sector:'service',title:'Координатор логистики',company:'Tulip Logistics',english:'B1',german:'none',minExp:2,salary:'€42–48k / год',visa:true,reloc:false,remote:false,posted:'5 дней назад',program:'nl-hsm',
+  s:{rel:7,ease:6,speed:8,cost:5,pr:7},desc:'Признанный спонсор, визу оформляет сам. Переезд не компенсирует.'},
+ {id:'j3',flag:'🇵🇱',country:'Польша',city:'Варшава',region:'eu',sector:'it',title:'QA-инженер (manual + auto)',company:'Vistula Dev',english:'B1',german:'none',minExp:1,salary:'12–16 тыс. PLN / мес',visa:true,reloc:true,remote:false,posted:'вчера',program:'pl-work',
+  s:{rel:7,ease:8,speed:6,cost:8,pr:6},desc:'Берут джунов+, помогают с разрешением на работу. Русскоговорящая команда.'},
+ {id:'j4',flag:'🇨🇿',country:'Чехия',city:'Брно',region:'eu',sector:'eng',title:'Инженер-механик (CAD)',company:'Moravia Engineering',english:'B1',german:'none',minExp:3,salary:'€2 400–3 000 / мес',visa:true,reloc:true,remote:false,posted:'неделю назад',program:'cz-card',
+  s:{rel:8,ease:6,speed:5,cost:7,pr:6},desc:'Вакансия в базе для карты сотрудника, помощь с документами.'},
+ {id:'j5',flag:'🇮🇪',country:'Ирландия',city:'Дублин',region:'eu',sector:'med',title:'Медсестра / медбрат (реанимация)',company:'Atlantic Care',english:'C1',german:'none',minExp:2,salary:'€38–50k / год',visa:true,reloc:true,remote:false,posted:'3 дня назад',program:'ie-csep',
+  s:{rel:8,ease:4,speed:5,cost:8,pr:8},desc:'Нужна регистрация в местном реестре медсестёр — помогают пройти процесс.'},
+ {id:'j6',flag:'🇵🇹',country:'Португалия',city:'Лиссабон (удалённо)',region:'eu',sector:'it',title:'Frontend-разработчик (React), удалённо',company:'Lisboa Digital',english:'B2',german:'none',minExp:2,salary:'$3 500–4 500 / мес',visa:false,reloc:false,remote:true,posted:'сегодня',program:'pt-d8',
+  s:{rel:6,ease:7,speed:8,cost:6,pr:7},desc:'Контракт на удалёнку — подходит как подтверждение дохода для визы кочевника.'},
+ {id:'j7',flag:'🇷🇸',country:'Сербия',city:'Белград',region:'eu',sector:'it',title:'DevOps-инженер',company:'Belgrade Code Lab',english:'B1',german:'none',minExp:2,salary:'€2 800–3 800 / мес',visa:true,reloc:true,remote:false,posted:'4 дня назад',program:'rs-res',
+  s:{rel:6,ease:9,speed:8,cost:9,pr:5},desc:'Оформляют ВНЖ по работе, команда из релокантов.'},
+ {id:'j8',flag:'🇬🇪',country:'Грузия',city:'Тбилиси',region:'near',sector:'it',title:'Аналитик данных (fintech)',company:'Tbilisi Fintech',english:'B1',german:'none',minExp:1,salary:'$2 000–2 800 / мес',visa:false,reloc:false,remote:false,posted:'вчера',program:'ge-free',
+  s:{rel:5,ease:10,speed:10,cost:9,pr:3},desc:'Визовая поддержка не нужна для безвизовых стран. Мало отзывов о компании.'},
+ {id:'j9',flag:'🇩🇪',country:'Германия',city:'Кёльн',region:'eu',sector:'med',title:'Специалист по уходу (Pflegefachkraft)',company:'Rhein Pflege',english:'none',german:'B1',minExp:0,salary:'€3 000–3 500 / мес',visa:true,reloc:true,remote:false,posted:'6 дней назад',program:'de-chance',
+  s:{rel:8,ease:5,speed:4,cost:8,pr:8},desc:'Оплачивают курсы немецкого и признание диплома.'},
+ {id:'j10',flag:'🇦🇪',country:'ОАЭ',city:'Дубай',region:'asia',sector:'it',title:'Cloud-инженер (AWS)',company:'Dune Cloud Ops',english:'B2',german:'none',minExp:4,salary:'AED 25–32k / мес',visa:true,reloc:true,remote:false,posted:'2 дня назад',program:null,
+  s:{rel:7,ease:7,speed:8,cost:6,pr:2},desc:'Рабочая виза от работодателя, без подоходного налога.'},
+ {id:'j11',flag:'🇨🇦',country:'Канада',city:'Торонто',region:'na',sector:'eng',title:'Инженер-электрик',company:'Maple Systems',english:'C1',german:'none',minExp:5,salary:'CAD 85–100k / год',visa:true,reloc:false,remote:false,posted:'неделю назад',program:'ca-ee',
+  s:{rel:7,ease:3,speed:3,cost:5,pr:10},desc:'Оффер даёт дополнительные баллы в Express Entry.'},
+ {id:'j12',flag:'🇳🇱',country:'Нидерланды',city:'Амстердам',region:'eu',sector:'it',title:'«Работа мечты: $10k без опыта, виза за 3 дня»',company:'GlobalJobs24',english:'none',german:'none',minExp:0,salary:'$10 000 / мес',visa:true,reloc:true,remote:false,posted:'сегодня',program:null,
+  s:{rel:1,ease:9,speed:9,cost:2,pr:1},flagged:true,desc:'Пример подозрительной вакансии: нереальные обещания, просят оплатить «оформление визы». Такие получают низкую надёжность.'}
+];
+
+/* ---------- демо-события ---------- */
+const DEMO_EVENTS = [
+ {date:'2026-11-12',title:'Вебинар: как получить Chancenkarte',cat:'webinar'},
+ {date:'2026-11-18',title:'Онлайн-ярмарка вакансий с релокацией',cat:'fair'},
+ {date:'2026-11-25',title:'Вебинар: виза кочевника в Португалии и Испании',cat:'webinar'},
+ {date:'2026-11-30',title:'Дедлайн стипендиальной программы на магистратуру',cat:'deadline'},
+ {date:'2026-12-03',title:'Ярмарка IT-вакансий Польши и Чехии',cat:'fair'},
+ {date:'2026-12-10',title:'Встреча релокантов: Q&A по ВНЖ в Сербии',cat:'webinar'},
+ {date:'2026-12-15',title:'Дедлайн подачи в вузы Германии (летний семестр)',cat:'deadline'},
+ {date:'2027-01-15',title:'Дедлайн подачи на магистратуру в Нидерландах',cat:'deadline'},
+ {date:'2027-02-05',title:'Европейская онлайн-ярмарка вакансий',cat:'fair'}
+].map((e,i)=>({...e,id:'demo'+i,demo:true}));
+
+/* ---------- состояние ---------- */
+const LS_KEY='relokot_v1';
+const DEFAULT = {
+  profile:{name:'',citizenship:'Казахстан',goal:'work',education:'bachelor',english:'B1',german:'none',sector:'it',experience:3,budget:'mid',family:'alone',regions:['eu']},
+  profileDone:false, saved:{}, events:[], calMonth:null, calDay:null,
+  q:{programs:'',jobs:''}, jf:{visa:false,reloc:false,remote:false,match:true}, pf:{match:true},
+  rate:{kind:'all',sort:'total',w:{rel:2,ease:1,speed:1,cost:1,pr:1},min:1},
+  liveJobs:[], livePrograms:[], foundEvents:[], lastSources:[], jobsAt:null, progAt:null, evAt:null, extra:''
+};
+/* состояние сервера (не сохраняется): live — сервер найден, ai — есть ключ для ИИ-поиска */
+const rt={live:false,ai:false,mock:false,adzuna:false,loading:{},err:{},ctl:{}};
+function load(){
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw){const s=JSON.parse(raw);return deepMerge(JSON.parse(JSON.stringify(DEFAULT)),s);}
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+function deepMerge(a,b){for(const k in b){if(b[k]&&typeof b[k]==='object'&&!Array.isArray(b[k])&&a[k]&&typeof a[k]==='object'&&!Array.isArray(a[k]))deepMerge(a[k],b[k]);else a[k]=b[k];}return a;}
+function persist(){try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}}
+const state=load();
+
+/* ---------- утилиты ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const TODAY=ymd(new Date());
+const MONTHS=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MONTHS_G=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const fmtDate=s=>{const [y,m,d]=s.split('-').map(Number);return `${d} ${MONTHS_G[m-1]}${y!==new Date().getFullYear()?' '+y:''}`;};
+const scCls=v=>v>=8?'s-hi':v>=5?'s-mid':'s-lo';
+const byId=id=>PROGRAMS.find(p=>p.id===id)||JOBS.find(j=>j.id===id)||state.livePrograms.find(p=>p.id===id)||state.liveJobs.find(j=>j.id===id)||(state.saved[id]&&state.saved[id].item)||null;
+const isProg=x=>x.kind==='program'||!!x.goals;
+const safeUrl=u=>/^https?:\/\//i.test(String(u||''))?String(u):'#';
+const SRC_NAME={arbeitnow:'Arbeitnow',jobicy:'Jobicy',adzuna:'Adzuna'};
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2200);}
+
+/* ---------- подбор: насколько вариант подходит анкете ---------- */
+function matchProgram(p,pr=state.profile){
+  if(p.match) return p.match;
+  let score=100;const ok=[],no=[];
+  if(!p.goals.includes(pr.goal)&&pr.goal!=='any'){score-=35;no.push('Другая цель: '+p.goals.map(g=>L.goal[g]).join(', '));} else ok.push('Подходит под цель');
+  if(pr.regions.length&&!pr.regions.includes(p.region)){score-=20;no.push('Не в выбранных регионах');} else ok.push('Регион подходит');
+  if(EDU.indexOf(pr.education)<EDU.indexOf(p.edu)){score-=30;no.push('Нужно: '+L.edu[p.edu]);} else if(p.edu!=='school') ok.push('Образование подходит');
+  if(p.lang.length){
+    const pass=p.lang.some(r=>LVL.indexOf(pr[r.l])>=LVL.indexOf(r.min));
+    const txt=p.lang.map(r=>L.lang[r.l]+' '+r.min).join(' или ');
+    if(pass) ok.push('Язык: '+txt); else {score-=25;no.push('Язык: '+txt);}
+  }
+  if(p.remote&&pr.goal!=='remote'){score-=10;no.push('Нужен удалённый доход');}
+  if(pr.experience<p.minExp){score-=15;no.push('Опыт от '+p.minExp+' лет');}
+  if(BUD.indexOf(pr.budget)<BUD.indexOf(p.budget)){score-=15;no.push('Нужны сбережения: '+L.budget[p.budget]);}
+  if(p.offer) no.push('Нужен оффер от работодателя');
+  if(!p.sectors.includes('any')&&!p.sectors.includes(pr.sector)){score-=15;no.push('Чаще для: '+p.sectors.map(s=>L.sector[s]).join(', '));}
+  return {score:Math.max(0,Math.min(100,score)),ok,no};
+}
+function matchJob(j,pr=state.profile){
+  if(j.match) return j.match;
+  let score=100;const ok=[],no=[];
+  if(j.sector!==pr.sector&&pr.sector!=='any'){score-=35;no.push('Другая сфера: '+L.sector[j.sector]);} else ok.push('Твоя сфера');
+  if(pr.regions.length&&!pr.regions.includes(j.region)){score-=20;no.push('Не в выбранных регионах');} else ok.push('Регион подходит');
+  if(LVL.indexOf(pr.english)<LVL.indexOf(j.english)){score-=25;no.push('Английский от '+j.english);} else if(j.english!=='none') ok.push('Английский '+j.english);
+  if(j.german!=='none'&&LVL.indexOf(pr.german)<LVL.indexOf(j.german)){score-=25;no.push('Немецкий от '+j.german);}
+  if(pr.experience<j.minExp){score-=20;no.push('Опыт от '+j.minExp+' лет');} else ok.push('Опыт подходит');
+  if(j.visa) ok.push('Визовая поддержка');
+  if(j.reloc) ok.push('Помощь с переездом');
+  if(j.flagged){score-=60;no.push('⚠ Признаки мошенничества');}
+  return {score:Math.max(0,Math.min(100,score)),ok,no};
+}
+function total(x,w=state.rate.w){
+  let sum=0,ws=0;CRIT.forEach(c=>{sum+=x.s[c.k]*w[c.k];ws+=w[c.k];});
+  return ws?Math.round(sum/ws*10)/10:0;
+}
+
+/* ---------- навигация ---------- */
+const NAV=[
+  {v:'anketa',ic:'📝',t:'Анкета'},
+  {v:'programs',ic:'🌍',t:'Программы'},
+  {v:'jobs',ic:'💼',t:'Вакансии'},
+  {v:'rating',ic:'🏆',t:'Рейтинг'},
+  {v:'calendar',ic:'📅',t:'Календарь'},
+  {v:'saved',ic:'⭐',t:'Сохранённое'}
+];
+function currentView(){const h=location.hash.slice(1);return NAV.some(n=>n.v===h)?h:(state.profileDone?'programs':'anketa');}
+function go(v){if(location.hash.slice(1)===v)render();else location.hash=v;window.scrollTo(0,0);}
+
+function renderSidebar(){
+  const v=currentView(),n=Object.keys(state.saved).length;
+  $('#sidebar').innerHTML=`<div class="logo">${MASCOT()}<span class="lbl">релокот</span></div>`+
+    NAV.map(x=>`<button class="nav-item ${x.v===v?'active':''}" data-act="nav" data-v="${x.v}" title="${x.t}"><span class="ic">${x.ic}</span><span class="lbl">${x.t}</span>${x.v==='saved'&&n?`<span class="count">${n}</span>`:''}</button>`).join('');
+}
+
+/* ---------- экран: анкета ---------- */
+function chips(field,opts,multi=false){
+  const cur=state.profile[field];
+  return `<div class="chips">${Object.entries(opts).map(([k,t])=>{
+    const on=multi?cur.includes(k):cur===k;
+    return `<button class="chip ${on?'on':''}" data-act="pick" data-f="${field}" data-v="${k}" data-multi="${multi?1:0}">${esc(t)}</button>`;}).join('')}</div>`;
+}
+function viewAnketa(){
+  const p=state.profile;
+  const lv={none:'Нет',A1:'A1',A2:'A2',B1:'B1',B2:'B2',C1:'C1+'};
+  return `
+  <div class="hero">${MASCOT()}<div class="bubble">${state.profileDone?'Анкету можно поправить в любой момент — подбор обновится сразу.':'Привет! Я Релокот. Расскажи о себе — и я подберу программы переезда и вакансии.'}</div></div>
+  <div class="card">
+    <div class="field"><div class="q">Как тебя зовут?</div><input class="input" data-in="name" value="${esc(p.name)}" placeholder="Имя"></div>
+    <div class="field"><div class="q">Гражданство</div><input class="input" data-in="citizenship" value="${esc(p.citizenship)}" placeholder="Например, Казахстан"></div>
+    <div class="field"><div class="q">Главная цель переезда</div>${chips('goal',{work:L.goal.work,study:L.goal.study,remote:L.goal.remote,business:L.goal.business})}</div>
+    <div class="field"><div class="q">Куда смотришь? (можно несколько)</div>${chips('regions',L.region,true)}</div>
+    <div class="field"><div class="q">Образование</div>${chips('education',L.edu)}</div>
+    <div class="field"><div class="q">Сфера работы</div>${chips('sector',{it:'IT',med:'Медицина',eng:'Инженерия',service:'Сервис / логистика',edu:'Образование',other:'Другое'})}</div>
+    <div class="field"><div class="q">Опыт работы, лет</div><input class="input" style="max-width:140px" type="number" min="0" max="50" data-in="experience" value="${esc(p.experience)}"></div>
+    <div class="field"><div class="q">Английский</div>${chips('english',lv)}</div>
+    <div class="field"><div class="q">Немецкий</div>${chips('german',lv)}</div>
+    <div class="field"><div class="q">Бюджет на переезд</div>${chips('budget',L.budget)}</div>
+    <div class="field" style="margin-bottom:6px"><div class="q">Переезжаешь…</div>${chips('family',L.family)}</div>
+  </div>
+  <div class="row" style="margin-top:18px"><span class="spacer"></span><button class="btn primary" data-act="save-profile">${state.profileDone?'Обновить подбор':'Подобрать варианты'}</button></div>`;
+}
+
+/* ---------- карточки ---------- */
+function scoresHtml(x){return `<div class="scores">${CRIT.map(c=>`<span class="sc" title="${esc(c.d)}"><b class="${scCls(x.s[c.k])}">${x.s[c.k]}</b>${c.n}</span>`).join('')}</div>`;}
+function saveBtn(id){const on=!!state.saved[id];return `<button class="btn sm ${on?'saved':''}" data-act="toggle-save" data-id="${id}">${on?'★ Сохранено':'☆ Сохранить'}</button>`;}
+function matchBar(score){const cls=score>=70?'':score>=45?'orange':'red';return `<div class="row" style="gap:10px;margin-top:12px"><div class="bar ${cls}"><i style="width:${score}%"></i></div><span class="pct">${score}%</span></div>`;}
+function reasonsHtml(m){return `<div class="reasons">${m.ok.slice(0,4).map(t=>`<div class="ok">✓ ${esc(t)}</div>`).join('')}${m.no.slice(0,4).map(t=>`<div class="no">✗ ${esc(t)}</div>`).join('')}</div>`;}
+
+function srcLink(x){
+  if(x.url) return `<a class="small" style="font-weight:800" href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener">${x.kind==='job'?'Открыть вакансию':esc(x.site||'Источник')} ↗</a>`;
+  return `<span class="small muted">Источник: ${esc(x.site)}</span>`;
+}
+function programCard(p,m,hi){
+  return `<div class="card ${hi?'hi':''}">
+    <div class="item-head"><span class="flag">${p.flag}</span>
+      <div style="flex:1"><div class="label" style="margin-bottom:2px">${esc(p.country)} · ${esc(L.type[p.type]||p.type)}</div><h3 class="title">${esc(p.name)}</h3>
+      ${p.live?`<div class="row" style="gap:6px;margin-top:6px"><span class="tag blue">🔎 найдено в сети</span>${p.verified?'<span class="tag green">✓ источник подтверждён поиском</span>':'<span class="tag red">источник не подтверждён</span>'}</div>`:''}</div>
+      ${hi?'<span class="tag green">Лучшее совпадение</span>':''}</div>
+    ${p.live&&p.desc?`<p class="small" style="font-weight:600;margin:10px 0 0">${esc(p.desc)}</p>`:''}
+    ${matchBar(m.score)}${reasonsHtml(m)}${scoresHtml(p)}
+    ${p.checked?`<div class="small muted" style="margin-top:8px">🗓 ${esc(p.checked)}</div>`:''}
+    <div class="row" style="margin-top:14px"><button class="btn sm blue" data-act="open" data-id="${p.id}">Подробнее</button>${saveBtn(p.id)}<span class="spacer"></span>${srcLink(p)}</div>
+  </div>`;
+}
+function jobCard(j,m){
+  return `<div class="card" ${j.flagged?'style="border-color:#FFB2B2"':''}>
+    <div class="item-head"><span class="flag">${j.flag}</span>
+      <div style="flex:1"><div class="label" style="margin-bottom:2px">${esc(j.company||'Компания не указана')} · ${esc(j.city)}${j.city&&j.country&&!String(j.city).includes(j.country)?', '+esc(j.country):''}</div><h3 class="title">${esc(j.title)}</h3>
+      <div class="row" style="gap:6px;margin-top:6px"><span class="tag">${esc(j.salary)}</span>${j.visa?'<span class="tag green">Виза</span>':''}${j.visa_denied?'<span class="tag red">Без визы</span>':''}${j.reloc?'<span class="tag blue">Релокация</span>':''}${j.remote?'<span class="tag purple">Удалённо</span>':''}${j.flagged?'<span class="tag red">⚠ Подозрительно</span>':''}${j.live?`<span class="tag">${esc(SRC_NAME[j.source]||j.source)}</span>`:'<span class="tag">демо</span>'}</div></div>
+      <span class="small muted">${esc(j.posted)}</span></div>
+    ${matchBar(m.score)}${reasonsHtml(m)}${scoresHtml(j)}
+    <div class="row" style="margin-top:14px"><button class="btn sm blue" data-act="open" data-id="${j.id}">Подробнее</button>${saveBtn(j.id)}<span class="spacer"></span>${j.url?srcLink(j):''}</div>
+  </div>`;
+}
+function loadingBox(text,hint){
+  return `<div class="card" style="text-align:center;padding:28px"><div class="bob">${MASCOT()}</div><div style="font-weight:900;font-size:17px;margin-top:6px">${esc(text)}<span class="dots"></span></div>${hint?`<div class="small muted" style="margin-top:6px;font-weight:700">${esc(hint)}</div>`:''}</div>`;
+}
+function errBox(msg){return `<div class="banner" style="background:var(--red-l);border-color:#FFB2B2;color:var(--red-d)">⚠️ <span>${esc(msg)}</span></div>`;}
+function ago(ts){if(!ts)return '';const m=Math.round((Date.now()-ts)/60000);return m<1?'только что':m<60?m+' мин назад':m<1440?Math.round(m/60)+' ч назад':Math.round(m/1440)+' дн. назад';}
+function serverBanner(){
+  if(rt.live) return rt.mock?`<div class="banner">🧪 <span>Сервер работает в тестовом режиме (RELOKOT_MOCK=1): данные ненастоящие.</span></div>`:'';
+  return `<div class="banner">ℹ️ <span>Сейчас это демо: сервер не запущен. Запусти <b>start.bat</b> (Windows) или <b>start.sh</b> (Mac/Linux) и открой <b>http://127.0.0.1:8000</b> — тогда поиск станет настоящим.</span></div>`;
+}
+
+/* ---------- экран: программы ---------- */
+function programsList(){
+  const q=state.q.programs.trim().toLowerCase();
+  let list=PROGRAMS.map(p=>({p,m:matchProgram(p)}));
+  if(q) list=list.filter(({p})=>(p.name+' '+p.country+' '+L.type[p.type]+' '+p.desc).toLowerCase().includes(q));
+  if(state.pf.match) list=list.filter(x=>x.m.score>=50);
+  list.sort((a,b)=>b.m.score-a.m.score||total(b.p)-total(a.p));
+  if(!list.length) return emptyBox('Ничего не нашлось. Попробуй выключить «Только подходящие» или поменять анкету.');
+  return list.map((x,i)=>programCard(x.p,x.m,i===0&&!q&&!state.livePrograms.length)).join('');
+}
+function liveProgramsBlock(){
+  if(!rt.live) return '';
+  if(!rt.ai) return `<div class="card hi"><h3 class="title">🔎 ИИ-поиск программ</h3><p class="small" style="font-weight:700;margin:8px 0 0">Чтобы Релокот сам искал актуальные программы на официальных сайтах, добавь ключ Anthropic API в файл <b>.env</b> (строка <code>ANTHROPIC_API_KEY=...</code>) и перезапусти сервер. Инструкция — в README.</p></div>`;
+  let h=`<div class="card hi">
+    <div class="row"><h3 class="title">🔎 Найти актуальные программы в интернете</h3></div>
+    <p class="small muted" style="font-weight:700;margin:6px 0 10px">Claude ищет на официальных сайтах под твою анкету. Обычно 1–3 минуты; поиск платный по твоему API-ключу, результат кэшируется на 12 часов.</p>
+    <div class="row"><input class="input" style="flex:1;min-width:200px" data-extra="1" placeholder="Пожелания (необязательно): например, «тёплая страна, без немецкого»" value="${esc(state.extra)}">
+    ${rt.loading.programs?`<button class="btn red" data-act="stop" data-k="programs">Стоп</button>`:`<button class="btn primary" data-act="search-programs">${state.livePrograms.length?'Искать заново':'Искать'}</button>`}</div>
+    ${state.progAt?`<div class="small muted" style="margin-top:8px;font-weight:700">Последний поиск: ${ago(state.progAt)}</div>`:''}
+  </div>`;
+  if(rt.err.programs) h+=errBox(rt.err.programs);
+  if(rt.loading.programs) h+=loadingBox('Ищу программы на официальных сайтах','Проверяю, что программы действуют сейчас');
+  else if(state.livePrograms.length){
+    const list=[...state.livePrograms].sort((a,b)=>b.match.score-a.match.score);
+    h+=`<div class="label" style="margin:18px 0 8px">Найдено в интернете · ${list.length}</div>`+list.map((p,i)=>programCard(p,p.match,i===0)).join('');
+  }
+  return h;
+}
+function viewPrograms(){
+  const good=PROGRAMS.filter(p=>matchProgram(p).score>=70).length+state.livePrograms.filter(p=>p.match.score>=70).length;
+  const nm=state.profile.name?esc(state.profile.name)+', ':'';
+  return `
+  <div class="hero">${MASCOT()}<div class="bubble">${nm}есть <b>${good}</b> ${plural(good,'программа','программы','программ')} с совпадением от 70%. ${rt.ai?'Нажми «Искать» — проверю свежие варианты в интернете.':'Сохраняй понравившиеся — они появятся в «Сохранённом».'}</div></div>
+  ${serverBanner()}
+  ${liveProgramsBlock()}
+  <div class="label" style="margin:22px 0 8px">Справочник · ${PROGRAMS.length} программ</div>
+  <div class="banner">📚 <span>Справочник составлен вручную, описания общие. Пороги зарплат и суммы меняются — сверяйся с официальным сайтом.</span></div>
+  <div class="toolbar"><input class="input" data-search="programs" placeholder="Поиск по справочнику: страна, тип визы…" value="${esc(state.q.programs)}">
+    <span class="toggle ${state.pf.match?'on':''}" data-act="pf" data-k="match">✓ Только подходящие</span></div>
+  <div id="list">${programsList()}</div>`;
+}
+
+/* ---------- экран: вакансии ---------- */
+function jobsList(){
+  if(rt.loading.jobs) return loadingBox('Ищу вакансии на сайтах','Arbeitnow, Jobicy'+(rt.adzuna?', Adzuna':'')+' — обычно 5–20 секунд');
+  const base=rt.live?state.liveJobs:JOBS;
+  if(rt.live&&!base.length) return state.jobsAt
+    ? emptyBox('Ничего не найдено. Посмотри статус источников над фильтрами: если там ошибки — проверь интернет, VPN или попробуй позже.','sad')
+    : emptyBox('Нажми «Искать на сайтах» — найду реальные вакансии под твою анкету.');
+  const q=state.q.jobs.trim().toLowerCase(),f=state.jf;
+  let list=base.map(j=>({j,m:matchJob(j)}));
+  if(q) list=list.filter(({j})=>(j.title+' '+j.company+' '+j.city+' '+j.country+' '+(j.tags||[]).join(' ')).toLowerCase().includes(q));
+  if(f.visa) list=list.filter(x=>x.j.visa);
+  if(f.reloc) list=list.filter(x=>x.j.reloc);
+  if(f.remote) list=list.filter(x=>x.j.remote);
+  if(f.match) list=list.filter(x=>x.m.score>=50);
+  list.sort((a,b)=>b.m.score-a.m.score);
+  if(!list.length) return emptyBox(`Под такие фильтры ничего нет${base.length?` (всего найдено ${base.length})`:''}. Сними часть галочек или поменяй запрос.`);
+  const shown=list.slice(0,60);
+  return `<div class="small muted" style="font-weight:800;margin:-4px 0 10px">Показано ${shown.length} из ${list.length}${rt.live?` · найдено всего ${base.length}`:''}</div>`+shown.map(x=>jobCard(x.j,x.m)).join('');
+}
+function sourcesLine(){
+  if(!rt.live||!state.lastSources.length) return '';
+  return `<div class="row small" style="gap:6px;margin:-6px 0 14px;font-weight:800">${state.lastSources.map(s=>`<span class="tag ${s.ok?'green':''}" title="${esc(s.error||'')}">${esc(SRC_NAME[s.source]||s.source)} ${s.ok?'✓ '+s.count:'— '+esc(s.error||'ошибка')}</span>`).join('')}${state.jobsAt?`<span class="muted">· ${ago(state.jobsAt)}</span>`:''}</div>`;
+}
+function viewJobs(){
+  const t=(k,txt)=>`<span class="toggle ${state.jf[k]?'on':''}" data-act="jf" data-k="${k}">${txt}</span>`;
+  return `
+  <h1 class="h1">Вакансии с переездом</h1><p class="sub">${rt.live?'Реальные вакансии с открытых сайтов. Надёжность и совпадение считаются автоматически по тексту объявления.':'Подбор по твоей сфере, языку и опыту. Компании в демо вымышленные.'}</p>
+  ${serverBanner()}
+  <div class="toolbar"><input class="input" data-search="jobs" placeholder="${rt.live?'Запрос: python, nurse, logistics… (пусто — по анкете)':'Поиск: должность, город…'}" value="${esc(state.q.jobs)}">
+  ${rt.live?`<button class="btn primary" data-act="search-jobs" ${rt.loading.jobs?'disabled':''}>Искать на сайтах</button>`:''}</div>
+  ${sourcesLine()}
+  ${rt.err.jobs?errBox(rt.err.jobs):''}
+  <div class="toolbar">${t('match','✓ Подходящие мне')}${t('visa','🛂 С визой')}${t('reloc','🧳 С релокацией')}${t('remote','🏠 Удалённо')}</div>
+  <div id="list">${jobsList()}</div>`;
+}
+
+/* ---------- экран: рейтинг ---------- */
+function ratingRows(){
+  const r=state.rate;
+  let rows=[...(r.kind!=='jobs'?[...state.livePrograms,...PROGRAMS]:[]),...(r.kind!=='programs'?(rt.live?state.liveJobs:JOBS):[])].map(x=>({x,t:total(x)}));
+  rows=rows.filter(o=>o.t>=r.min);
+  rows.sort((a,b)=>r.sort==='total'?b.t-a.t:b.x.s[r.sort]-a.x.s[r.sort]||b.t-a.t);
+  if(!rows.length) return `<tr><td colspan="8" style="border-radius:14px;border:2px solid var(--line);text-align:center" class="muted">Нет вариантов с таким минимальным баллом</td></tr>`;
+  return rows.map(({x,t},i)=>`<tr>
+    <td><span class="nm" data-act="open" data-id="${x.id}">${i<3?['🥇','🥈','🥉'][i]+' ':''}${x.flag} ${esc(isProg(x)?x.name:x.title)}</span><div class="small muted">${isProg(x)?esc(x.country)+' · программа':esc(x.company)+' · вакансия'}</div></td>
+    ${CRIT.map(c=>`<td><b class="big ${scCls(x.s[c.k])}" style="width:30px;height:26px;font-size:13px">${x.s[c.k]}</b></td>`).join('')}
+    <td><b class="big ${scCls(t)}">${t}</b></td>
+    <td><button class="btn sm ghost" data-act="toggle-save" data-id="${x.id}" title="Сохранить">${state.saved[x.id]?'★':'☆'}</button></td></tr>`).join('');
+}
+function viewRating(){
+  const r=state.rate;
+  const seg=(k,t)=>`<span class="toggle ${r.kind===k?'on':''}" data-act="rkind" data-k="${k}">${t}</span>`;
+  return `
+  <h1 class="h1">Рейтинг вариантов</h1><p class="sub">Каждый вариант оценён от 1 до 10 по пяти критериям. Двигай веса — итог пересчитается под то, что важно тебе.</p>
+  <div class="card">
+    <div class="label">Что для тебя важнее? (вес 0–3)</div>
+    <div class="sliders">${CRIT.map(c=>`<label class="sl" title="${esc(c.d)}"><span class="row"><span>${c.n}</span><span class="spacer"></span><span id="w-${c.k}">${r.w[c.k]}</span></span><input type="range" min="0" max="3" step="1" value="${r.w[c.k]}" data-w="${c.k}"><span class="small muted" style="font-weight:600">${c.d}</span></label>`).join('')}
+      <label class="sl"><span class="row"><span>Минимальный итог</span><span class="spacer"></span><span id="w-min">${r.min}</span></span><input type="range" min="1" max="10" step="0.5" value="${r.min}" data-min="1"><span class="small muted" style="font-weight:600">Скрыть всё, что ниже</span></label>
+    </div>
+  </div>
+  <div class="toolbar" style="margin-top:16px">${seg('all','Всё')}${seg('programs','Программы')}${seg('jobs','Вакансии')}<span class="spacer"></span><span class="small muted">Клик по заголовку — сортировка</span></div>
+  <div class="table-wrap"><table class="rt"><thead><tr>
+    <th class="${r.sort==='name'?'sorted':''}">Вариант</th>
+    ${CRIT.map(c=>`<th data-act="rsort" data-k="${c.k}" class="${r.sort===c.k?'sorted':''}" title="${esc(c.d)}">${c.n}</th>`).join('')}
+    <th data-act="rsort" data-k="total" class="${r.sort==='total'?'sorted':''}">Итог</th><th></th></tr></thead>
+    <tbody id="rt-body">${ratingRows()}</tbody></table></div>
+  <div class="banner" style="margin-top:14px">🧮 <span>Сейчас оценки в демо расставлены вручную. В рабочей версии их будет считать сервер: официальный ли источник, возраст и отзывы компании, «красные флаги» в тексте вакансии (как у примера с $10k без опыта).</span></div>`;
+}
+
+/* ---------- экран: календарь ---------- */
+function allEvents(){
+  const saved=Object.entries(state.saved).flatMap(([id,s])=>s.reminder?[{id:'rem-'+id,date:s.reminder,title:'Напоминание: '+((byId(id)||{}).name||(byId(id)||{}).title||''),cat:'docs',auto:true}]:[]);
+  return [...(rt.live?[]:DEMO_EVENTS),...state.foundEvents,...state.events,...saved].sort((a,b)=>a.date.localeCompare(b.date));
+}
+function evItem(e){
+  const color={deadline:'var(--red)',webinar:'var(--blue)',fair:'var(--orange)',docs:'var(--purple)',personal:'var(--green)'}[e.cat];
+  return `<div class="ev"><span class="dot" style="background:${color}"></span><div style="flex:1"><div class="when">${fmtDate(e.date)} · ${L.cat[e.cat]}${e.demo?' · пример':''}${e.found?' · найдено в сети':''}</div><div style="font-weight:800">${e.url?`<a href="${esc(safeUrl(e.url))}" target="_blank" rel="noopener" style="color:inherit">${esc(e.title)} ↗</a>`:esc(e.title)}</div>${e.note?`<div class="small muted">${esc(e.note)}</div>`:''}</div>${(!e.demo&&!e.auto)?`<button class="btn sm ghost red" data-act="del-event" data-id="${e.id}">Удалить</button>`:''}</div>`;
+}
+function eventsSearchCard(){
+  if(!rt.live) return '';
+  if(!rt.ai) return `<div class="card"><div class="label">Поиск событий</div><div class="small" style="font-weight:700">Чтобы Релокот сам находил дедлайны, вебинары и ярмарки вакансий, добавь <code>ANTHROPIC_API_KEY</code> в файл .env.</div></div>`;
+  return `<div class="card hi"><div class="row"><div style="flex:1"><h3 class="title">🔎 Найти события на 4 месяца вперёд</h3><div class="small muted" style="font-weight:700">Дедлайны программ и стипендий, вебинары, ярмарки вакансий — с ссылками на источник.${state.evAt?' Последний поиск: '+ago(state.evAt)+'.':''}</div></div>
+    ${rt.loading.events?`<button class="btn red" data-act="stop" data-k="events">Стоп</button>`:`<button class="btn primary" data-act="search-events">Искать</button>`}</div>
+    ${rt.err.events?errBox(rt.err.events):''}${rt.loading.events?loadingBox('Ищу события','Обычно 1–3 минуты'):''}</div>`;
+}
+function viewCalendar(){
+  if(!state.calMonth) state.calMonth=TODAY.slice(0,7);
+  if(!state.calDay) state.calDay=TODAY;
+  const [y,m]=state.calMonth.split('-').map(Number);
+  const first=new Date(y,m-1,1),off=(first.getDay()+6)%7,start=new Date(y,m-1,1-off);
+  const evs=allEvents(),byDate={};evs.forEach(e=>(byDate[e.date]=byDate[e.date]||[]).push(e));
+  let cells='';
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);const k=ymd(d);
+    if(i>=35&&d.getMonth()!==m-1)break;
+    const list=byDate[k]||[];
+    cells+=`<button class="day ${d.getMonth()!==m-1?'out':''} ${k===TODAY?'today':''} ${k===state.calDay?'sel':''} ${list.length?'has':''}" data-act="cal-day" data-d="${k}"><span class="dn">${d.getDate()}</span>${list.slice(0,2).map(e=>`<span class="ev-pill c-${e.cat}">${esc(e.title)}</span>`).join('')}${list.length>2?`<span class="small muted" style="font-size:10.5px;font-weight:800">+${list.length-2}</span>`:''}</button>`;
+  }
+  const dayList=byDate[state.calDay]||[];
+  const upcoming=evs.filter(e=>e.date>=TODAY).slice(0,6);
+  return `
+  <h1 class="h1">Календарь</h1><p class="sub">Дедлайны программ, вебинары, ярмарки вакансий и твои личные дела.</p>
+  <div class="card">
+    <div class="row" style="margin-bottom:12px"><button class="btn sm" data-act="cal-prev">‹</button><h3 class="title" style="min-width:170px;text-align:center">${MONTHS[m-1]} ${y}</h3><button class="btn sm" data-act="cal-next">›</button><span class="spacer"></span><button class="btn sm ghost" data-act="cal-today">Сегодня</button></div>
+    <div class="cal">${['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d=>`<div class="dow">${d}</div>`).join('')}${cells}</div>
+    <div class="row small" style="margin-top:12px;gap:14px">${Object.entries(L.cat).map(([k,t])=>`<span class="row" style="gap:5px"><span class="ev-pill c-${k}" style="display:inline-block;width:12px;height:12px;padding:0"></span>${t}</span>`).join('')}</div>
+  </div>
+  <div class="card">
+    <div class="label">${fmtDate(state.calDay)}</div>
+    ${dayList.length?dayList.map(evItem).join(''):'<div class="muted small" style="font-weight:700">На этот день ничего нет.</div>'}
+    <div class="label" style="margin-top:16px">Добавить событие</div>
+    <div class="form-grid">
+      <input class="input" id="ev-title" placeholder="Например: подать документы в консульство">
+      <input class="input" id="ev-date" type="date" value="${state.calDay}">
+      <select class="input" id="ev-cat">${Object.entries(L.cat).map(([k,t])=>`<option value="${k}" ${k==='personal'?'selected':''}>${t}</option>`).join('')}</select>
+      <button class="btn primary" data-act="add-event">Добавить</button>
+    </div>
+  </div>
+  ${eventsSearchCard()}
+  <div class="card"><div class="label">Ближайшие события</div>${upcoming.map(evItem).join('')||'<div class="muted">Пусто</div>'}</div>`;
+}
+
+/* ---------- экран: сохранённое ---------- */
+function viewSaved(){
+  const ids=Object.keys(state.saved).sort((a,b)=>state.saved[b].at-state.saved[a].at);
+  if(!ids.length) return `<h1 class="h1">Сохранённое</h1>${emptyBox('Пока пусто. Нажимай «☆ Сохранить» на программах и вакансиях.','sad')}<div style="text-align:center"><button class="btn primary" data-act="nav" data-v="programs">К программам</button></div>`;
+  return `<h1 class="h1">Сохранённое</h1><p class="sub">Отмечай статус, пиши заметки, ставь напоминания — они попадут в календарь.</p>`+
+  ids.map(id=>{const x=byId(id);if(!x)return'';const s=state.saved[id];
+    return `<div class="card"><div class="item-head"><span class="flag">${x.flag}</span><div style="flex:1"><div class="label" style="margin-bottom:2px">${isProg(x)?esc(x.country)+' · программа':esc(x.company)+' · вакансия'}</div><h3 class="title" style="cursor:pointer" data-act="open" data-id="${id}">${esc(isProg(x)?x.name:x.title)}</h3></div><b class="big ${scCls(total(x))}">${total(x)}</b></div>
+    <div class="row" style="margin-top:12px"><select class="status-sel" data-status="${id}">${Object.entries(L.status).map(([k,t])=>`<option value="${k}" ${s.status===k?'selected':''}>${t}</option>`).join('')}</select>
+      <label class="row small" style="gap:6px;font-weight:800">⏰ Напоминание <input class="input" style="width:auto;padding:6px 10px" type="date" data-rem="${id}" value="${s.reminder||''}"></label>
+      <span class="spacer"></span><button class="btn sm red" data-act="toggle-save" data-id="${id}">Убрать</button></div>
+    <textarea class="input" style="margin-top:10px" data-note="${id}" placeholder="Заметки: какие документы нужны, с кем связаться…">${esc(s.note||'')}</textarea></div>`;}).join('');
+}
+
+/* ---------- правая колонка ---------- */
+function renderRail(){
+  const nSaved=Object.keys(state.saved).length,nEv=state.events.length;
+  const best=Math.max(...PROGRAMS.map(p=>matchProgram(p).score));
+  const quests=[
+    {ic:'📝',t:'Заполнить анкету',v:state.profileDone?1:0,max:1},
+    {ic:'⭐',t:'Сохранить 3 варианта',v:Math.min(nSaved,3),max:3},
+    {ic:'📅',t:'Добавить событие в календарь',v:Math.min(nEv,1),max:1}
+  ];
+  const up=allEvents().filter(e=>e.date>=TODAY).slice(0,3);
+  $('#rail').innerHTML=`
+  <div class="stats"><span title="Сохранено">⭐ ${nSaved}</span><span title="Твои события">📅 ${nEv}</span><span title="Лучшее совпадение" style="color:var(--green-d)">🎯 ${state.profileDone?best+'%':'—'}</span></div>
+  <div class="card"><h3>${state.profile.name?'Привет, '+esc(state.profile.name)+'!':'Твой профиль'}</h3>
+    <div class="small muted" style="font-weight:700">${state.profileDone?`${esc(state.profile.citizenship)} · ${L.goal[state.profile.goal]} · ${L.sector[state.profile.sector]} · EN ${state.profile.english}`:'Заполни анкету, чтобы получить персональный подбор.'}</div>
+    <button class="btn ${state.profileDone?'':'primary'} sm" style="margin-top:12px;width:100%" data-act="nav" data-v="anketa">${state.profileDone?'Изменить анкету':'Заполнить анкету'}</button></div>
+  <div class="card"><div class="row"><h3 style="margin:0">Задания</h3></div>
+    ${quests.map(q=>`<div class="quest"><span class="qi">${q.ic}</span><div style="flex:1"><div class="qt">${q.t}</div><div class="bar sm ${q.v>=q.max?'':'orange'}"><i style="width:${q.v/q.max*100}%"></i><span>${q.v} / ${q.max}</span></div></div></div>`).join('')}</div>
+  <div class="card"><div class="row"><h3 style="margin:0">Скоро</h3><span class="spacer"></span><button class="btn sm ghost" data-act="nav" data-v="calendar">Все</button></div>
+    ${up.length?'':'<div class="small muted" style="font-weight:700;margin-top:6px">Пока пусто — загляни в календарь.</div>'}${up.map(e=>`<div class="ev" style="padding:8px 0"><span class="dot c-${e.cat}" style="width:10px;height:10px;border-radius:50%;margin-top:6px;flex:none"></span><div><div class="when">${fmtDate(e.date)}</div><div style="font-weight:800;font-size:13.5px">${esc(e.title)}</div></div></div>`).join('')}</div>
+  ${rt.live
+    ?`<div class="card promo">${MASCOT()}<h3><span class="live-dot"></span> Живой поиск включён</h3><p>Вакансии: Arbeitnow, Jobicy${rt.adzuna?', Adzuna':''}.<br>ИИ-поиск программ и событий: ${rt.ai?'включён':'нужен ключ в .env'}.</p><button class="btn primary sm" data-act="nav" data-v="jobs">Искать вакансии</button></div>`
+    :`<div class="card promo">${MASCOT()}<h3>Живой поиск по сайтам</h3><p>Запусти сервер (start.bat / start.sh) и открой http://127.0.0.1:8000 — Релокот начнёт искать по-настоящему.</p><span class="tag" style="background:#1F5A88;border-color:#2B6EA3;color:#fff">демо-режим</span></div>`}`;
+  $('#rail .promo svg').style.cssText='width:70px;height:70px';
+}
+
+/* ---------- модалка ---------- */
+function openItem(id){
+  const x=byId(id);if(!x)return;const prog=isProg(x);const m=prog?matchProgram(x):matchJob(x);
+  const linked=!prog&&x.program?byId(x.program):null;
+  $('#modal-box').innerHTML=`
+    <div class="item-head"><span class="flag" style="font-size:40px">${x.flag}</span><div style="flex:1"><div class="label" style="margin-bottom:2px">${prog?esc(x.country)+' · '+esc(L.type[x.type]||x.type):esc(x.company||'Компания не указана')+' · '+esc(x.city)}</div><h3 class="title" style="font-size:22px">${esc(prog?x.name:x.title)}</h3></div><button class="btn sm ghost" data-act="close">✕</button></div>
+    <p style="font-weight:600">${esc(x.desc)}</p>
+    ${prog?`<div class="label">Ключевые требования</div><ul style="margin:0 0 10px;padding-left:20px;font-weight:700">${x.need.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:`<div class="row" style="gap:6px"><span class="tag">${esc(x.salary)}</span><span class="tag">Опыт от ${x.minExp} лет</span><span class="tag">EN ${x.english==='none'?'не нужен':x.english}</span>${x.german!=='none'?`<span class="tag">DE ${x.german}</span>`:''}</div>`}
+    <div class="label" style="margin-top:14px">Совпадение с анкетой</div>${matchBar(m.score)}${reasonsHtml(m)}
+    <div class="label" style="margin-top:14px">Оценки 1–10 · итог <b class="big ${scCls(total(x))}" style="width:auto;padding:0 8px;height:24px;font-size:13px">${total(x)}</b></div>${scoresHtml(x)}
+    ${linked?`<div class="banner" style="margin:14px 0 0;background:var(--blue-l);border-color:#84D8FF;color:var(--blue-d)">🔗 <span>Путь переезда: <a href="#" data-act="open" data-id="${linked.id}">${esc(linked.name)}</a></span></div>`:''}
+    ${!prog&&x.flags&&x.flags.length?`<div class="banner" style="margin:14px 0 0;background:var(--red-l);border-color:#FFB2B2;color:var(--red-d)">⚠️ <span>${x.flags.map(esc).join('<br>')}</span></div>`:''}
+    ${prog&&x.live&&x.sources&&x.sources.length?`<div class="label" style="margin-top:14px">Источники</div><ul style="margin:0;padding-left:20px;font-size:13px;word-break:break-all">${x.sources.map(u=>`<li><a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${esc(u)}</a></li>`).join('')}</ul>`:''}
+    ${prog?`<p class="small muted" style="margin-top:14px">Официальный источник: <a href="${esc(x.url?safeUrl(x.url):'https://'+x.site)}" target="_blank" rel="noopener">${esc(x.site)}</a> — проверяй актуальные пороги там.</p>`:''}
+    ${!prog&&x.url?`<p style="margin-top:14px"><a class="btn blue" href="${esc(safeUrl(x.url))}" target="_blank" rel="noopener">Открыть вакансию на ${esc(SRC_NAME[x.source]||'сайте')} ↗</a></p>`:''}
+    <div class="row" style="margin-top:16px">${saveBtn(x.id)}<span class="spacer"></span><button class="btn" data-act="close">Закрыть</button></div>`;
+  $('#modal').classList.add('open');
+}
+function closeModal(){$('#modal').classList.remove('open');}
+
+/* ---------- мелочи ---------- */
+function emptyBox(t,mood='happy'){return `<div class="empty">${MASCOT(mood)}${esc(t)}</div>`;}
+function plural(n,a,b,c){const m10=n%10,m100=n%100;if(m10===1&&m100!==11)return a;if(m10>=2&&m10<=4&&(m100<10||m100>=20))return b;return c;}
+
+/* ---------- рендер ---------- */
+const VIEWS={anketa:viewAnketa,programs:viewPrograms,jobs:viewJobs,rating:viewRating,calendar:viewCalendar,saved:viewSaved};
+function render(){renderSidebar();$('#main').innerHTML=VIEWS[currentView()]();renderRail();}
+window.addEventListener('hashchange',render);
+
+/* ---------- события ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-act]');if(!t)return;
+  const a=t.dataset.act;
+  if(a==='modal-bg'){if(e.target.id==='modal')closeModal();return;}
+  if(t.tagName==='A')e.preventDefault();
+  switch(a){
+    case 'nav':closeModal();go(t.dataset.v);break;
+    case 'pick':{const f=t.dataset.f,v=t.dataset.v;
+      if(t.dataset.multi==='1'){const arr=state.profile[f];const i=arr.indexOf(v);i>=0?arr.splice(i,1):arr.push(v);}else state.profile[f]=v;
+      persist();t.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',t.dataset.multi==='1'?state.profile[f].includes(c.dataset.v):c.dataset.v===state.profile[f]));break;}
+    case 'save-profile':state.profileDone=true;persist();toast('Анкета сохранена — подбор обновлён!');go('programs');break;
+    case 'toggle-save':{const id=t.dataset.id;
+      if(state.saved[id]){delete state.saved[id];toast('Убрано из сохранённого');}
+      else{const it=byId(id);state.saved[id]={status:'interest',note:'',at:Date.now(),item:it&&it.live?it:null};toast('★ Сохранено');}
+      persist();
+      if($('#modal').classList.contains('open'))openItem(id);
+      rerenderKeepScroll();break;}
+    case 'open':openItem(t.dataset.id);break;
+    case 'search-jobs':searchJobs();break;
+    case 'search-programs':searchPrograms();break;
+    case 'search-events':searchEvents();break;
+    case 'stop':{const c=rt.ctl[t.dataset.k];if(c)c.abort();break;}
+    case 'close':closeModal();break;
+    case 'pf':state.pf[t.dataset.k]=!state.pf[t.dataset.k];persist();t.classList.toggle('on');$('#list').innerHTML=programsList();break;
+    case 'jf':state.jf[t.dataset.k]=!state.jf[t.dataset.k];persist();t.classList.toggle('on');$('#list').innerHTML=jobsList();break;
+    case 'rkind':state.rate.kind=t.dataset.k;persist();rerenderKeepScroll();break;
+    case 'rsort':state.rate.sort=t.dataset.k;persist();rerenderKeepScroll();break;
+    case 'cal-prev':case 'cal-next':{const [y,m]=state.calMonth.split('-').map(Number);const d=new Date(y,m-1+(a==='cal-next'?1:-1),1);state.calMonth=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;persist();render();break;}
+    case 'cal-today':state.calMonth=TODAY.slice(0,7);state.calDay=TODAY;persist();render();break;
+    case 'cal-day':state.calDay=t.dataset.d;state.calMonth=t.dataset.d.slice(0,7);persist();rerenderKeepScroll();break;
+    case 'add-event':{const title=$('#ev-title').value.trim(),date=$('#ev-date').value,cat=$('#ev-cat').value;
+      if(!title||!date){toast('Введи название и дату');return;}
+      state.events.push({id:'u'+Date.now(),title,date,cat});state.calDay=date;state.calMonth=date.slice(0,7);persist();toast('Событие добавлено');rerenderKeepScroll();break;}
+    case 'del-event':state.events=state.events.filter(x=>x.id!==t.dataset.id);persist();rerenderKeepScroll();break;
+  }
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.dataset.in){state.profile[t.dataset.in]=t.dataset.in==='experience'?Math.max(0,Number(t.value)||0):t.value;persist();}
+  else if(t.dataset.search){state.q[t.dataset.search]=t.value;persist();$('#list').innerHTML=t.dataset.search==='programs'?programsList():jobsList();}
+  else if(t.dataset.w){state.rate.w[t.dataset.w]=Number(t.value);$('#w-'+t.dataset.w).textContent=t.value;persist();$('#rt-body').innerHTML=ratingRows();}
+  else if(t.dataset.min){state.rate.min=Number(t.value);$('#w-min').textContent=t.value;persist();$('#rt-body').innerHTML=ratingRows();}
+  else if(t.dataset.note){state.saved[t.dataset.note].note=t.value;persist();}
+  else if(t.dataset.extra){state.extra=t.value;persist();}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.dataset.status){state.saved[t.dataset.status].status=t.value;persist();toast(L.status[t.value]);}
+  else if(t.dataset.rem){state.saved[t.dataset.rem].reminder=t.value||null;persist();renderRail();toast(t.value?'Напоминание в календаре':'Напоминание убрано');}
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if(e.key==='Enter'&&rt.live&&e.target.dataset&&e.target.dataset.search==='jobs')searchJobs();
+  if(e.key==='Enter'&&rt.ai&&e.target.dataset&&e.target.dataset.extra)searchPrograms();
+});
+function rerenderKeepScroll(){const y=window.scrollY;render();window.scrollTo(0,y);}
+
+/* ---------- связь с сервером ---------- */
+async function api(path,body,key){
+  const ctl=new AbortController();if(key)rt.ctl[key]=ctl;
+  const r=await fetch(path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,signal:ctl.signal});
+  let data=null;try{data=await r.json();}catch(e){}
+  if(!r.ok) throw new Error((data&&data.detail)||('Ошибка сервера '+r.status));
+  return data;
+}
+async function runSearch(key,fn){
+  if(rt.loading[key])return;
+  rt.loading[key]=true;rt.err[key]=null;rerenderKeepScroll();
+  try{await fn();}
+  catch(e){rt.err[key]=e.name==='AbortError'?null:(e.message||String(e));if(e.name==='AbortError')toast('Поиск остановлен');}
+  finally{rt.loading[key]=false;rt.ctl[key]=null;persist();rerenderKeepScroll();}
+}
+function searchJobs(){
+  return runSearch('jobs',async()=>{
+    const d=await api('/api/jobs/search',{profile:state.profile,query:state.q.jobs},'jobs');
+    state.liveJobs=d.jobs;state.lastSources=d.sources;state.jobsAt=Date.now();
+    toast(`Найдено вакансий: ${d.total}`);
+  });
+}
+function searchPrograms(){
+  return runSearch('programs',async()=>{
+    const d=await api('/api/programs/search',{profile:state.profile,extra:state.extra,refresh:!!state.progAt},'programs');
+    state.livePrograms=d.programs;state.progAt=Date.now();
+    toast(d.cached?'Показан результат из кэша':`Найдено программ: ${d.programs.length}`);
+  });
+}
+function searchEvents(){
+  return runSearch('events',async()=>{
+    const d=await api('/api/events/search',{profile:state.profile,months:4,refresh:!!state.evAt},'events');
+    const old=new Set(state.foundEvents.map(e=>e.date+e.title));
+    state.foundEvents=[...state.foundEvents.filter(e=>e.date>=TODAY),...d.events.filter(e=>!old.has(e.date+e.title))];
+    state.evAt=Date.now();
+    toast(`Найдено событий: ${d.events.length}`);
+  });
+}
+async function checkServer(){
+  if(!/^https?:$/.test(location.protocol))return;
+  try{
+    const ctl=new AbortController();setTimeout(()=>ctl.abort(),2500);
+    const r=await fetch('/api/health',{signal:ctl.signal});
+    if(!r.ok)return;
+    const h=await r.json();
+    if(!h||!h.ok)return;
+    Object.assign(rt,{live:true,ai:!!h.ai,mock:!!h.mock,adzuna:!!(h.sources&&h.sources.adzuna)});
+    rerenderKeepScroll();
+  }catch(e){/* сервера нет — работаем как демо */}
+}
+
+render();
+checkServer();
+</script>
+</body>
+</html>
